@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Thanks for your order!</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<style>
+  html {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    margin: 0;
+    padding: 0;
+    background-color: wheat;
+    color: #333333;
+  }
+
+  section {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .ready-popup {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 2px solid green;
+    border-radius: 5px;
+    z-index: 1;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+  }
+
+  .payment-popup {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 2px solid green;
+    border-radius: 5px;
+    z-index: 1;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+  }
+
+  .payment-popup a {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: green;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+  }
+
+  .ready-popup p {
+    margin: 0;
+  }
+
+  .close-btn {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: green;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+
+  }
+</style>
+
+<body>
+  <section>
+    <p>
+      Your order has been placed successfully!
+    </p>
+
+    <p>
+      Order Status: <span id="orderStatus">Pending...</span>
+    </p>
+
+    <div class="ready-popup">
+      <p>Your order is ready for pickup!</p>
+
+      <p style="margin:10px;color:brown">Order number <b>#<span id="orderID"></span></b></p>
+
+      <button class="close-btn" onclick="document.querySelector('.ready-popup').style.display = 'none'">
+        Close
+      </button>
+    </div>
+
+    <div class="payment-popup">
+      <p>Waiting payment...</p>
+
+      <a id="payment-link" href="#">Go to Payment</a>
+    </div>
+
+  </section>
+</body>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const customerID = urlParams.get('customerID');
+  const orderID = urlParams.get('orderID');
+
+  const order = {
+    customerID,
+    orderID,
+    status: "pending"
+  };
+
+  // pool the server for the order status
+  const poolOrderStatus = async () => {
+    const response = await fetch(`/api/customers/${customerID}/orders/${orderID}`);
+
+    const data = await response.json();
+    if (data.Status === 'waiting_payment') {
+      order.Status = 'Your order is waiting for payment...';
+      document.getElementById('orderStatus').innerText = order.Status;
+
+      // show payment popup
+      document.querySelector('.payment-popup').style.display = 'block';
+      document.getElementById('payment-link').href = data.PaymentLink;
+    }
+    if (data.Status === 'paid') {
+      order.Status = 'Your order has been paid for. Please way while its being prepared...';
+      document.getElementById('orderStatus').innerText = order.Status;
+
+      setTimeout(poolOrderStatus, 5000);
+    } else if (data.Status === 'ready') {
+      order.Status = 'ready';
+
+      // close payment popup
+      document.querySelector('.payment-popup').style.display = 'none';
+
+      // show ready popup
+      document.querySelector('.ready-popup').style.display = 'block';
+      document.getElementById('orderID').innerText = orderID;
+      document.getElementById('orderStatus').innerText = order.Status;
+    } else {
+      setTimeout(poolOrderStatus, 5000);
+    }
+  };
+
+  poolOrderStatus();
+</script>
+
+</html>
