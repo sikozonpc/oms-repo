@@ -40,7 +40,7 @@ Test card: 4242424242424242
 
 http://localhost:15672/#/
 
-## Jagger UI
+## Jaeger UI
 
 
 ## Deployment
