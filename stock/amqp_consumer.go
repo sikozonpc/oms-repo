@@ -60,6 +60,8 @@ func (c *Consumer) Listen(ch *amqp.Channel) {
 
 			orderID := string(d.Body)
 
+			d.Ack(false)
+
 			messageSpan.End()
 			log.Printf("Order received: %s", orderID)
 		}
