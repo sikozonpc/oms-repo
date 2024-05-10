@@ -28,16 +28,14 @@ func NewRegistry(addr, serviceName string) (*Registry, error) {
 }
 
 func (r *Registry) Register(ctx context.Context, instanceID, serviceName, hostPort string) error {
-	parts := strings.Split(hostPort, ":")
-	if len(parts) != 2 {
+	host, portStr, found := strings.Cut(hostPort, ":")
+	if !found {
 		return errors.New("invalid host:port format. Eg: localhost:8081")
 	}
-
-	port, err := strconv.Atoi(parts[1])
+	port, err := strconv.Atoi(portStr)
 	if err != nil {
 		return err
 	}
-	host := parts[0]
 
 	return r.client.Agent().ServiceRegister(&consul.AgentServiceRegistration{
 		ID:      instanceID,
