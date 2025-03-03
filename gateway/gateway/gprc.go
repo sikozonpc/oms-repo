@@ -21,6 +21,7 @@ func (g *gateway) CreateOrder(ctx context.Context, p *pb.CreateOrderRequest) (*p
 	if err != nil {
 		log.Fatalf("Failed to dial server: %v", err)
 	}
+	defer conn.Close()
 
 	c := pb.NewOrderServiceClient(conn)
 
@@ -35,6 +36,8 @@ func (g *gateway) GetOrder(ctx context.Context, orderID, customerID string) (*pb
 	if err != nil {
 		log.Fatalf("Failed to dial server: %v", err)
 	}
+
+	defer conn.Close()
 
 	c := pb.NewOrderServiceClient(conn)
 
